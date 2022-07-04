@@ -7,12 +7,58 @@ const timer = {
     shortBreak: 5,
     longBreak: 15,
     longBreakInterval: 4,
-  };
+};
+
+let interval;
+
+const mainButton = document.getElementById('js-btn');
+mainButton.addEventListener('click', () => {
+  const { action } = mainButton.dataset;
+  if (action === 'start') {
+    startTimer();
+  }
+});
 
 // detects a click of any of the mode buttons. 
 // modeButtons points to the containing element. once clicked, handleMode() is invoked.
 const modeButtons = document.querySelector('#js-mode-buttons');
 modeButtons.addEventListener('click', handleMode);
+
+// finds the difference between the current and end time in ms
+// computes total with difference and computes minutes/seconds
+function getRemainingTime(endTime) {
+    const currentTime = Date.parse(new Date());
+    const difference = endTime - currentTime;
+  
+    const total = Number.parseInt(difference / 1000, 10);
+    const minutes = Number.parseInt((total / 60) % 60, 10);
+    const seconds = Number.parseInt(total % 60, 10);
+  
+    return {
+      total,
+      minutes,
+      seconds,
+    };
+  }
+
+function startTimer() {
+    let { total } = timer.remainingTime;
+    const endTime = Date.parse(new Date()) + total * 1000;
+  
+    mainButton.dataset.action = 'stop';
+    mainButton.textContent = 'stop';
+    mainButton.classList.add('active');
+  
+    interval = setInterval(function() {
+      timer.remainingTime = getRemainingTime(endTime);
+      updateClock();
+  
+      total = timer.remainingTime.total;
+      if (total <= 0) {
+        clearInterval(interval);
+      }
+    }, 1000);
+}
 
 // gives the timer extra zeroes so that minutes and seconds each have two zeroes
 function updateClock() {
@@ -24,7 +70,7 @@ function updateClock() {
     const sec = document.getElementById('js-seconds');
     min.textContent = minutes;
     sec.textContent = seconds;
-  }
+}
 
 // mode could be pomodoro, shortBreak, or longBreak
 function switchMode(mode) {
@@ -55,3 +101,7 @@ function handleMode(event) {
   
     switchMode(mode);
   }
+
+document.addEventListener('DOMContentLoaded', () => {
+    switchMode('pomodoro');
+});
